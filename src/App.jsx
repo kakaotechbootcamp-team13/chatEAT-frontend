@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Register from './pages/Register';
+import { GlobalStyle } from './styles/global-styles';
+import ProtectedRoute from './components/ProtectedRoute';
+import RegisterSuccess from "./pages/ResgisterSuccess.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+    const isAuthenticated = !!localStorage.getItem('accessToken');
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    return (
+        <>
+            <GlobalStyle />
+            <Router>
+                <Routes>
+                    <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Home />} />
+                    <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+                    <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} />
+                    <Route path="/reset-password" element={<div>Reset Password Page</div>} />
+                    <Route path="/register-success" element={<RegisterSuccess />} />
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    } />
+                </Routes>
+            </Router>
+        </>
+    );
+};
 
-export default App
+export default App;
