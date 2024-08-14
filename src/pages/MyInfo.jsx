@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import {Link, useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import {getUserInfo, withdraw, withdrawOAuth2} from '../services/authService';
+import {withdraw, withdrawOAuth2} from '../services/authService';
+import {getUserInfo} from '../services/memberService';
 
 const MyInfo = ({sidebarOpen, toggleSidebar}) => {
     const [userInfo, setUserInfo] = useState({email: '', nickname: '', socialType: null});
@@ -31,7 +32,7 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
 
     const handleConfirmWithdraw = async () => {
         try {
-            if (userInfo.socialType === 'kakao') {
+            if (userInfo.socialType === 'KAKAO') {
                 if (password === userInfo.nickname) {
                     await withdrawOAuth2();
                 } else {
@@ -64,14 +65,7 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                     <MenuButton onClick={toggleSidebar}>
                         {sidebarOpen ? '<<' : '☰'}
                     </MenuButton>
-                    <HeaderContent>
-                        <Link to="/">
-                            <Logo src="/src/assets/logo.png" alt="ChatEAT Logo"/>
-                        </Link>
-                        <Link to="/">
-                            <Title>ChatEAT</Title>
-                        </Link>
-                    </HeaderContent>
+                    <Title>내 정보</Title>
                 </Header>
                 <InfoWrapper>
                     <InfoTitle>회원 정보</InfoTitle>
@@ -85,7 +79,7 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                                 <Label>닉네임:</Label>
                                 <Value>{userInfo.nickname}</Value>
                             </InfoItem>
-                            {userInfo.socialType === 'kakao' && (
+                            {userInfo.socialType === 'KAKAO' && (
                                 <InfoItem>
                                     <Label>소셜 로그인:</Label>
                                     <Value>카카오</Value>
@@ -101,11 +95,11 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                         <DialogContent>
                             <DialogTitle>정말 회원 탈퇴를 하시겠습니까?</DialogTitle>
                             <InputLabel>
-                                {userInfo.socialType === 'kakao' ? '닉네임 확인' : '비밀번호 확인'}
+                                {userInfo.socialType === 'KAKAO' ? '닉네임 확인' : '비밀번호 확인'}
                             </InputLabel>
                             <DialogInput
-                                type={userInfo.socialType === 'kakao' ? 'text' : 'password'}
-                                placeholder={userInfo.socialType === 'kakao' ? '닉네임을 입력하세요.' : '비밀번호를 입력하세요.'}
+                                type={userInfo.socialType === 'KAKAO' ? 'text' : 'password'}
+                                placeholder={userInfo.socialType === 'KAKAO' ? '닉네임을 입력하세요.' : '비밀번호를 입력하세요.'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
@@ -166,18 +160,8 @@ const MenuButton = styled.button`
     transition: opacity 0.3s ease-in-out;
 `;
 
-const HeaderContent = styled.div`
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
-`;
-
-const Logo = styled.img`
-    height: 40px;
-    margin-right: 10px;
-`;
-
 const Title = styled.h1`
+    margin-left: 10px;
     font-size: 24px;
     font-weight: bold;
     color: #472C0B;
@@ -302,11 +286,12 @@ const DialogInput = styled.input`
 
 const DialogActions = styled.div`
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 20px;
 `;
 
 const DialogButton = styled.button`
-    padding: 10px 20px;
+    padding: 10px 30px;
     font-size: 14px;
     color: white;
     background-color: #A1664D;

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, {useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import {useAuth} from '../hooks/useAuth';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { handleLogin, loading, error } = useAuth();
+    const {handleLogin, loading, error} = useAuth();
     const navigate = useNavigate();
     const [localError, setLocalError] = useState('');
+    const KAKAO_LOGIN_URL = import.meta.env.VITE_BACK_END_URL + "/oauth2/authorization/kakao";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,10 +32,20 @@ const Login = () => {
         }
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSubmit(e);
+        }
+    };
+
+    const handleKakaoLogin = () => {
+        window.location.href = KAKAO_LOGIN_URL;
+    };
+
     return (
         <Container>
             <Link to="/">
-                <Logo src="/src/assets/logo.png" alt="ChatEAT Logo" />
+                <Logo src="/src/assets/logo.png" alt="ChatEAT Logo"/>
             </Link>
             <Link to="/">
                 <Title>ChatEAT</Title>
@@ -50,6 +60,7 @@ const Login = () => {
                             setEmail(e.target.value);
                             setLocalError('');
                         }}
+                        onKeyDown={handleKeyDown}
                     />
                     <InputField
                         type="password"
@@ -59,6 +70,7 @@ const Login = () => {
                             setPassword(e.target.value);
                             setLocalError('');
                         }}
+                        onKeyDown={handleKeyDown}
                     />
                 </InputWrapper>
                 <LoginButton onClick={handleSubmit} disabled={loading}>
@@ -67,11 +79,11 @@ const Login = () => {
                 {(localError) && <ErrorMessage>{localError}</ErrorMessage>}
             </InputContainer>
             <LinksContainer>
-                <StyledLink to="/reset-password">비밀번호 재설정</StyledLink>
+                회원이 아니신가요?
                 <StyledLink to="/register">회원가입</StyledLink>
             </LinksContainer>
-            <KakaoLoginButton>
-                <KakaoLoginImage src="/src/assets/kakaologinbutton.png" alt="카카오 로그인" />
+            <KakaoLoginButton onClick={handleKakaoLogin}>
+                <KakaoLoginImage src="/src/assets/kakaologinbutton.png" alt="카카오 로그인"/>
             </KakaoLoginButton>
         </Container>
     );
@@ -152,6 +164,7 @@ const LoginButton = styled.button`
     width: 100%;
     margin-top: 15px;
     transition: background-color 0.3s ease;
+
     &:hover {
         background-color: #8b4513;
     }
@@ -164,6 +177,7 @@ const ErrorMessage = styled.p`
 `;
 
 const LinksContainer = styled.div`
+    color: #6d6d6d;
     display: flex;
     justify-content: space-between;
     width: 200px;
@@ -172,7 +186,7 @@ const LinksContainer = styled.div`
 
 const StyledLink = styled(Link)`
     font-size: 16px;
-    color: #472C0B;
+    color: #452110;
     text-decoration: none;
 `;
 

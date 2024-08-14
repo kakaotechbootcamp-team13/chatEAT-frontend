@@ -1,7 +1,7 @@
 import apiClient from './apiClient';
 
 export const login = async (email, password) => {
-    const response = await apiClient.post('/auth/login', { email, password });
+    const response = await apiClient.post('/auth/login', {email, password});
     let accessToken = response.headers['authorization'];
     const refreshToken = response.headers['refresh'];
 
@@ -20,15 +20,22 @@ export const login = async (email, password) => {
     return response.data;
 };
 
-export const refreshAccessToken = async (refreshToken) => {
-    const response = await apiClient.patch('/auth/reissue', { refreshToken });
+export const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!refreshToken) {
+        throw new Error('Refresh token not available');
+    }
+
+    const response = await apiClient.patch('/auth/reissue', null, {
+        headers: {
+            Refresh: `${refreshToken}`,
+        },
+    });
+
     return response.data;
 };
 
-export const getUserInfo = async () => {
-    const response = await apiClient.get('/members/myInfo');
-    return response.data;
-};
 
 export const logout = async () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -58,9 +65,9 @@ export const logout = async () => {
 };
 
 export const withdraw = async (password) => {
-    return await apiClient.delete('/members/withdraw', { data: { password } });
+    return await apiClient.delete('/members/withdraw', {data: {password}});
 };
 
 export const withdrawOAuth2 = async (nickname) => {
-    return await apiClient.delete('/members/oauth2/withdraw', { data: { nickname } });
+    return await apiClient.delete('/members/oauth2/withdraw', {data: {nickname}});
 };

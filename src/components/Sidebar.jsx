@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
-import { getUserInfo, logout } from '../services/authService.js';
-import { useEffect, useState } from 'react';
+import {useNavigate} from 'react-router-dom';
+import {logout} from '../services/authService.js';
+import {getUserInfo} from '../services/memberService';
 
-const Sidebar = ({ open }) => {
+const Sidebar = ({open}) => {
     const [nickname, setNickname] = useState('');
     const navigate = useNavigate();
 
@@ -25,7 +25,8 @@ const Sidebar = ({ open }) => {
     const handleLogout = async () => {
         try {
             await logout();
-            navigate('/');
+            navigate('/login');
+            window.location.reload();
         } catch (error) {
             console.error('Logout failed:', error);
         }
@@ -40,13 +41,13 @@ const Sidebar = ({ open }) => {
     };
 
     const goToUpdate = () => {
-        navigate('/dashboard');
+        navigate('/update-profile');
     };
 
     return (
         <SidebarContainer open={open}>
             <UserProfile>
-                <Avatar />
+                <Avatar/>
                 <UserName>{nickname}</UserName>
             </UserProfile>
             <SidebarMenu>
