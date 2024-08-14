@@ -1,69 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
-import { logout } from '../services/authService';
-import { getUserInfo } from '../services/authService';
+import React from 'react';
 import styled from 'styled-components';
-import {Link, useNavigate} from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import Sidebar from '../components/Sidebar';
 
-const Dashboard = () => {
-    const [nickname, setNickname] = useState('');
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [chatMessage, setChatMessage] = useState("");
-    const isMounted = useRef(false);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        if (!isMounted.current) {
-            isMounted.current = true;
-            return;
-        }
-
-        const fetchUserInfo = async () => {
-            try {
-                const userInfo = await getUserInfo();
-                setNickname(userInfo.nickname);
-            } catch (error) {
-                console.error('사용자 정보를 가져오는데 실패했습니다.', error);
-            }
-        };
-        fetchUserInfo();
-    }, []);
-
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
-
-    const handleInputChange = (e) => {
-        setChatMessage(e.target.value);
-        e.target.style.height = 'auto';
-        e.target.style.height = e.target.scrollHeight + 'px';
-    };
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-            navigate('/');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    };
-
+const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     return (
         <Container>
-            <Sidebar open={sidebarOpen}>
-                <UserProfile>
-                    <Avatar />
-                    <UserName>{nickname}</UserName>
-                </UserProfile>
-                <SidebarMenu>
-                    <SidebarButton>채팅</SidebarButton>
-                    <SidebarButton>보관함</SidebarButton>
-                    <SidebarButton>좋아요</SidebarButton>
-                    <SidebarButton>내 정보</SidebarButton>
-                </SidebarMenu>
-                <LogoutContainer>
-                    <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
-                </LogoutContainer>
-            </Sidebar>
+            <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
             <Content className={sidebarOpen ? 'sidebar-open' : ''}>
                 <Header>
                     <MenuButton onClick={toggleSidebar}>
@@ -87,8 +31,6 @@ const Dashboard = () => {
                     <ChatInputContainer>
                         <ChatInput
                             placeholder="채팅을 입력하세요..."
-                            value={chatMessage}
-                            onChange={handleInputChange}
                             rows={1}
                         />
                     </ChatInputContainer>
@@ -99,6 +41,11 @@ const Dashboard = () => {
     );
 };
 
+Dashboard.propTypes = {
+    sidebarOpen: PropTypes.bool.isRequired,
+    toggleSidebar: PropTypes.func.isRequired,
+};
+
 export default Dashboard;
 
 // 스타일링 관련 코드
@@ -107,92 +54,6 @@ const Container = styled.div`
     height: 100vh;
     overflow: hidden;
     background-color: white;
-`;
-
-const Sidebar = styled.div`
-    width: 250px;
-    transition: transform 0.3s ease-in-out;
-    transform: ${(props) => (props.open ? 'translateX(0)' : 'translateX(-100%)')};
-    background-color: #f4f1ea;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 10;
-    padding: 16px;
-`;
-
-const UserProfile = styled.div`
-    text-align: center;
-    margin-top: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-`;
-
-const Avatar = styled.div`
-    width: 80px;
-    height: 80px;
-    background-color: #ccc;
-    border-radius: 50%;
-`;
-
-const UserName = styled.div`
-    font-size: 25px;
-    color: #472C0B;
-    margin-top: 8px;
-    font-weight: bold;
-`;
-
-const SidebarMenu = styled.div`
-    margin-top: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: auto; /* 메뉴를 위로 올리기 위해 자동 마진 추가 */
-`;
-
-const SidebarButton = styled.button`
-    width: 80%;
-    padding: 10px;
-    margin: 8px 0;
-    font-size: 18px;
-    color: #8b4513;
-    background-color: transparent;
-    border: 2px solid transparent;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: border-color 0.3s ease-in-out;
-
-    &:hover {
-        border-color: #8b4513;
-    }
-`;
-
-const LogoutContainer = styled.div`
-    display: flex;
-    justify-content: center;
-    margin-top: auto;
-    margin-bottom: 16px; /* 로그아웃 버튼이 사이드바의 중앙에 오도록 조정 */
-`;
-
-const LogoutButton = styled.button`
-    width: 80%;
-    padding: 10px;
-    font-size: 18px;
-    color: #8b4513;
-    background-color: transparent;
-    border: 2px solid transparent;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: border-color 0.3s ease-in-out;
-
-    &:hover {
-        border-color: #8b4513;
-    }
 `;
 
 const Content = styled.div`
@@ -206,10 +67,11 @@ const Content = styled.div`
         margin-left: 250px;
     }
 `;
+
 const Header = styled.div`
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* 왼쪽 정렬 */
+    justify-content: flex-start;
     padding: 16px;
     background-color: #fff;
     border-bottom: 1px solid #ddd;
@@ -246,7 +108,7 @@ const Main = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px; /* 버튼들 사이의 간격을 20px로 설정 */
+    gap: 20px;
     transition: transform 0.3s ease-in-out;
     padding: 0 20px;
 `;
@@ -270,7 +132,7 @@ const ChatInputSection = styled.div`
     padding: 16px;
     display: flex;
     flex-direction: column;
-    align-items: center; /* 중앙 정렬 */
+    align-items: center;
 `;
 
 const ChatInputContainer = styled.div`

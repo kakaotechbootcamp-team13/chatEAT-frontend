@@ -7,9 +7,16 @@ import Register from './pages/Register';
 import { GlobalStyle } from './styles/global-styles';
 import ProtectedRoute from './components/ProtectedRoute';
 import RegisterSuccess from "./pages/ResgisterSuccess.jsx";
+import MyInfo from './pages/MyInfo';
+import {useState} from "react";
 
 const App = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const isAuthenticated = !!localStorage.getItem('accessToken');
+
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
     return (
         <>
@@ -23,7 +30,12 @@ const App = () => {
                     <Route path="/register-success" element={<RegisterSuccess />} />
                     <Route path="/dashboard" element={
                         <ProtectedRoute>
-                            <Dashboard />
+                            <Dashboard sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/myinfo" element={
+                        <ProtectedRoute>
+                            <MyInfo sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
                         </ProtectedRoute>
                     } />
                 </Routes>

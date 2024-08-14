@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {checkEmail, checkNickname, join} from '../services/memberService';
 
 const emailDomains = [
@@ -130,8 +130,8 @@ const Register = () => {
         }
         try {
             setIsSubmitting(true);
-            const response = await join({ email, password, nickname });
-            navigate('/register-success', { state: { email: response.email, nickname: response.nickname } });
+            const response = await join({email, password, nickname});
+            navigate('/register-success', {state: {email: response.email, nickname: response.nickname}});
         } catch (error) {
             setLocalError('회원가입 중 오류가 발생했습니다.');
         } finally {
@@ -143,7 +143,7 @@ const Register = () => {
         <Container>
             <LogoContainer>
                 <Link to={"/"}>
-                    <Logo src="/src/assets/logo.png" alt="ChatEAT Logo" />
+                    <Logo src="/src/assets/logo.png" alt="ChatEAT Logo"/>
                 </Link>
                 <Link to={"/"}>
                     <Title>ChatEAT</Title>
@@ -227,7 +227,8 @@ const Register = () => {
                         </ErrorText>
                     )}
                 </NicknameFormField>
-                <SubmitButton onClick={handleSubmit} disabled={!isEmailValid || !isNicknameValid || passwordError || confirmPasswordError || isSubmitting}>
+                <SubmitButton onClick={handleSubmit}
+                              disabled={!isEmailValid || !isNicknameValid || passwordError || confirmPasswordError || isSubmitting}>
                     {isSubmitting ? '로딩 중...' : '회원가입'}
                 </SubmitButton>
                 {localError && <ErrorMessage>{localError}</ErrorMessage>}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useLocation, Navigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import React, {useState} from 'react';
+import {Link, Navigate, useLocation} from 'react-router-dom';
+import styled, {keyframes} from 'styled-components';
 
 const fadeIn = keyframes`
     from {
@@ -21,12 +21,12 @@ const blink = keyframes`
 
 const RegisterSuccess = () => {
     const location = useLocation();
-    const { email, nickname } = location.state || {};
+    const {email, nickname} = location.state || {};
 
     const [flipped, setFlipped] = useState(false);
 
     if (!email || !nickname) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/" replace/>;
     }
 
     const handleFlip = () => {
@@ -82,7 +82,7 @@ const ThankYouMessage = styled.p`
 `;
 
 const CardContainer = styled.div`
-    width: 350px;  /* 가로 길이를 길게 조정 */
+    width: 350px;
     height: 200px;
     perspective: 1000px;
     cursor: pointer;

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { login, refreshAccessToken } from '../services/authService';
+import {useState} from 'react';
+import {login, refreshAccessToken} from '../services/authService';
 
 export const useAuth = () => {
     const [loading, setLoading] = useState(false);
@@ -23,9 +23,9 @@ export const useAuth = () => {
         if (!refreshToken) {
             return false;
         }
-
+        
         try {
-            const { accessToken } = await refreshAccessToken(refreshToken);
+            const {accessToken} = await refreshAccessToken(refreshToken);
             localStorage.setItem('accessToken', accessToken);
             return true;
         } catch (err) {

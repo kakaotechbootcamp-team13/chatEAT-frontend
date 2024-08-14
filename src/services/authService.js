@@ -56,3 +56,11 @@ export const logout = async () => {
         throw error;
     }
 };
+
+export const withdraw = async (password) => {
+    return await apiClient.delete('/members/withdraw', { data: { password } });
+};
+
+export const withdrawOAuth2 = async (nickname) => {
+    return await apiClient.delete('/members/oauth2/withdraw', { data: { nickname } });
+};

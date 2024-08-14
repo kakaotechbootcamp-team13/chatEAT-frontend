@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { refreshAccessToken } from './authService.js';
+import {refreshAccessToken} from './authService.js';
 
-const API_URL = "http://localhost:8080"; // API 베이스 URL 설정
+const API_URL = import.meta.env.VITE_BACK_END_URL;
 
 const apiClient = axios.create({
     baseURL: API_URL,
