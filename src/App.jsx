@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Register from './pages/Register';
+import {GlobalStyle} from './styles/global-styles';
+import ProtectedRoute from './components/ProtectedRoute';
+import RegisterSuccess from "./pages/ResgisterSuccess.jsx";
+import MyInfo from './pages/MyInfo';
+import {useState} from "react";
+import UpdateProfile from "./pages/UpdateProfile.jsx";
+import ErrorPage from "./pages/Error.jsx";
+import SocialRegister from "./pages/SocialRegister.jsx";
+import KakaoLoginRedirect from "./pages/KakaoLoginRedirect.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const isAuthenticated = !!localStorage.getItem('accessToken');
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
-export default App
+    return (
+        <>
+            <GlobalStyle/>
+            <Router>
+                <Routes>
+                    <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard"/> : <Home/>}/>
+                    <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard"/> : <Login/>}/>
+                    <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard"/> : <Register/>}/>
+                    <Route path="/register-success" element={<RegisterSuccess/>}/>
+                    <Route path="/members/oauth2/join" element={<SocialRegister/>}/>
+                    <Route path="/kakao-login" element={<KakaoLoginRedirect/>}/>
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <Dashboard sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/myinfo" element={
+                        <ProtectedRoute>
+                            <MyInfo sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/update-profile" element={
+                        <ProtectedRoute>
+                            <UpdateProfile sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="*" element={<ErrorPage/>}/>
+                </Routes>
+            </Router>
+        </>
+    );
+};
+
+export default App;
