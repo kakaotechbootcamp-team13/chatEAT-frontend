@@ -147,7 +147,7 @@ const Header = styled.div`
     align-items: center;
     justify-content: flex-start;
     padding: 16px;
-    background-color: #fff;
+    background-color: #ffffff;
     border-bottom: 1px solid #ddd;
     transition: padding 0.3s ease-in-out;
 `;
@@ -173,7 +173,7 @@ const InfoWrapper = styled.div`
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #ffffff;
 `;
 
 const InfoTitle = styled.h2`
@@ -196,7 +196,7 @@ const InfoContainer = styled.div`
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #ffffff;
 `;
 
 const InfoBox = styled.div`
@@ -265,7 +265,7 @@ const DialogContent = styled.div`
     width: 90%;
     max-width: 400px;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
     border-radius: 10px;
     text-align: center;
 `;
