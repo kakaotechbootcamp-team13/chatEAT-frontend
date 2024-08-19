@@ -1,0 +1,36 @@
+name: client
+#트리거: 여기서는 main 브랜치에 push되는 경우
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout source code.
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+        working-directory: ../../
+      - name: Build
+        run: npm run build
+        working-directory: ../../
+      - name: SHOW AWS CLI VERSION
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_EC2_METADATA_DISABLED: true
+        run: |
+          aws --version
+      - name: Sync Bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_EC2_METADATA_DISABLED: true
+        run: |
+          aws s3 sync \
+            --region ap-northeast-2 \
+            build s3://chateat-front \
+            --delete
+        working-directory: ../../
