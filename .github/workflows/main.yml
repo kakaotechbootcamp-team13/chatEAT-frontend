@@ -31,6 +31,6 @@ jobs:
         run: |
           aws s3 sync \
             --region ap-northeast-2 \
-            dist s3://chateat-front2 \
+            dist s3://chateat-front \
             --delete
         working-directory: ./
