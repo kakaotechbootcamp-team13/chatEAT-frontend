@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const useChatScroll = (dependency) => {
     const chatBoxRef = useRef(null);
