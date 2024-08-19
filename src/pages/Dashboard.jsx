@@ -1,14 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Sidebar from '../components/Sidebar';
+import useChatScroll from "../hooks/useChatScroll.js";
 
 const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
     const [buttonVisible, setButtonVisible] = useState(true);
-    const chatBoxRef = useRef(null);
+    const chatBoxRef = useChatScroll(chatMessages);
 
     const handleSend = (message) => {
         if (message.trim()) {
@@ -25,12 +26,6 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const handleInputSubmit = () => {
         handleSend(inputValue);
     };
-
-    useEffect(() => {
-        if (chatBoxRef.current) {
-            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-        }
-    }, [chatMessages]);
 
     return (
         <Container>
@@ -116,7 +111,7 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
                 placeholder="채팅을 입력하세요..."
                 rows={1}
             />
-            <SendButton visible={inputValue.length>0} onClick={() => handleSend(inputValue)}>
+            <SendButton visible={inputValue.length > 0 ? 'block' : undefined} onClick={handleSend}>
                 <ArrowIcon src="/src/assets/arrow.png" alt="send" />
             </SendButton>
         </ChatInputContainer>
