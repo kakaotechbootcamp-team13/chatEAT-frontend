@@ -1,9 +1,10 @@
 name: client
-#트리거: 여기서는 main 브랜치에 push되는 경우
+#트리거: 여기서는 dev, feature/ci-cd 브랜치에 push되는 경우
 on:
   push:
     branches:
       - feature/ci-cd
+      - dev
 jobs:
   build:
     runs-on: ubuntu-22.04
