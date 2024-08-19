@@ -236,7 +236,7 @@ const Header = styled.div`
     align-items: center;
     justify-content: flex-start;
     padding: 16px;
-    background-color: #fff;
+    background-color: #ffffff;
     border-bottom: 1px solid #ddd;
     transition: padding 0.3s ease-in-out;
 `;
@@ -264,7 +264,7 @@ const FormWrapper = styled.div`
     justify-content: center;
     padding: 20px;
     gap: 30px;
-    background-color: #f9f9f9;
+    background-color: #ffffff;
 `;
 
 const NicknameInput = styled.input`
@@ -328,6 +328,7 @@ const ConfirmDialog = styled.div`
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 `;
 
 const DialogContent = styled.div`

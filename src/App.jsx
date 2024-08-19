@@ -12,6 +12,8 @@ import UpdateProfile from "./pages/UpdateProfile.jsx";
 import ErrorPage from "./pages/Error.jsx";
 import SocialRegister from "./pages/SocialRegister.jsx";
 import KakaoLoginRedirect from "./pages/KakaoLoginRedirect.jsx";
+import Admin from "./pages/Admin.jsx";
+import RoleError from "./pages/RoleError.jsx";
 
 const App = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,7 +49,14 @@ const App = () => {
                             <UpdateProfile sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
                         </ProtectedRoute>
                     }/>
+                    <Route path="/admin" element={
+                        <ProtectedRoute>
+                            <Admin sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
+                        </ProtectedRoute>
+                    }/>
+                    <Route path="/register-success" element={<RegisterSuccess/>}/>
                     <Route path="*" element={<ErrorPage/>}/>
+                    <Route path="/role-error" element={<RoleError/>}/>
                 </Routes>
             </Router>
         </>
