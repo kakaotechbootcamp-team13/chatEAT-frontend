@@ -9,6 +9,7 @@ import {getUserInfo} from '../services/memberService';
 const MyInfo = ({sidebarOpen, toggleSidebar}) => {
     const [userInfo, setUserInfo] = useState({email: '', nickname: '', socialType: null});
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false); // 탈퇴 완료 모달 상태
     const [password, setPassword] = useState('');
     const [inputError, setInputError] = useState('');
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
         const fetchUserInfo = async () => {
             try {
                 const data = await getUserInfo();
-                setUserInfo({email: data.email, nickname: data.nickname, socialType: data.socialType});
+                setUserInfo({email: data.email, nickname: data.nickname, socialType: data.socialType, role: data.role});
             } catch (error) {
                 console.error('사용자 정보를 가져오는데 실패했습니다.', error);
             }
@@ -44,11 +45,17 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
             }
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            navigate('/');
+            setShowConfirmDialog(false);
+            setShowSuccessDialog(true); // 탈퇴 완료 모달 표시
         } catch (error) {
             setInputError('비밀번호를 확인해주세요.');
             console.error('회원 탈퇴 실패:', error);
         }
+    };
+
+    const handleCloseSuccessDialog = () => {
+        setShowSuccessDialog(false);
+        navigate('/');
     };
 
     const handleCancelWithdraw = () => {
@@ -85,6 +92,12 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                                     <Value>카카오</Value>
                                 </InfoItem>
                             )}
+                            {userInfo.role === 'ROLE_ADMIN' && (
+                                <InfoItem>
+                                    <Label>역할:</Label>
+                                    <Value>관리자</Value>
+                                </InfoItem>
+                            )}
                         </InfoBox>
                         <WithdrawButton onClick={handleWithdrawClick}>회원 탈퇴</WithdrawButton>
                     </InfoContainer>
@@ -110,6 +123,17 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                             </DialogActions>
                         </DialogContent>
                     </ConfirmDialog>
+                )}
+
+                {showSuccessDialog && (
+                    <ModalOverlay onClick={handleCloseSuccessDialog}>
+                        <DialogContent onClick={(e) => e.stopPropagation()}>
+                            <DialogTitle>탈퇴가 완료되었습니다.</DialogTitle>
+                            <DialogActions>
+                                <DialogButton onClick={handleCloseSuccessDialog}>확인</DialogButton>
+                            </DialogActions>
+                        </DialogContent>
+                    </ModalOverlay>
                 )}
             </Content>
         </Container>
@@ -259,15 +283,17 @@ const ConfirmDialog = styled.div`
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 `;
 
 const DialogContent = styled.div`
     width: 90%;
     max-width: 400px;
     padding: 20px;
-    background-color: #ffffff;
+    background-color: #fff;
     border-radius: 10px;
     text-align: center;
+    z-index: 1001;
 `;
 
 const DialogTitle = styled.h2`
@@ -310,4 +336,17 @@ const ErrorText = styled.p`
     font-size: 12px;
     margin-top: -10px;
     margin-bottom: 10px;
+`;
+
+const ModalOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 `;
