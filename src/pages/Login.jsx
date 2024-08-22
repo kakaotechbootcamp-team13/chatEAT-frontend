@@ -13,6 +13,7 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLocalError('');
 
         if (!email) {
             setLocalError('이메일을 입력해주세요.');
@@ -28,7 +29,11 @@ const Login = () => {
         if (success) {
             navigate('/dashboard');
         } else {
-            setLocalError('아이디와 비밀번호를 확인해주세요.');
+            if (error === 'Blocked Account') {
+                setLocalError('비활성화된 계정입니다. 관리자에 문의해주세요.');
+            } else {
+                setLocalError('아이디와 비밀번호를 확인해주세요.');
+            }
         }
     };
 

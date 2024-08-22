@@ -17,3 +17,11 @@ export const changeUserRole = async (memberId, role) => {
 export const deleteMember = async (memberId) => {
     return await apiClient.delete(`/admin/members/${memberId}`);
 };
+
+export const blockMember = async (memberId) => {
+    return await apiClient.patch('/admin/blockMember', {id: memberId});
+};
+
+export const unblockMember = async (memberId) => {
+    return await apiClient.patch('/admin/unblockMember', {id: memberId});
+};

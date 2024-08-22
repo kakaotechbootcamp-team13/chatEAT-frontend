@@ -2,44 +2,37 @@ import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {useNavigate} from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import {changeUserRole, deleteMember, getAllMembers} from '../services/adminService';
-import {getUserInfo} from '../services/memberService';
+import {blockMember, changeUserRole, deleteMember, getAllMembers, unblockMember} from '../services/adminService';
 import PropTypes from 'prop-types';
+import {useUser} from '../contexts/UserContext';
 
 const Admin = ({sidebarOpen, toggleSidebar}) => {
+    const {user, loading} = useUser();
     const [members, setMembers] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [selectedRole, setSelectedRole] = useState({});
+    const [selectedStatus, setSelectedStatus] = useState({});
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [showDeleteSuccessDialog, setShowDeleteSuccessDialog] = useState(false);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleteMemberId, setDeleteMemberId] = useState(null);
     const [deleteMemberNickname, setDeleteMemberNickname] = useState('');
-    const [currentUserId, setCurrentUserId] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const checkAdmin = async () => {
-            try {
-                const userInfo = await getUserInfo();
-                if (userInfo.role !== 'ROLE_ADMIN') {
-                    navigate('/role-error');
-                }
-                setCurrentUserId(userInfo.id);
-            } catch (error) {
-                console.error('Failed to fetch user info:', error);
-                navigate('/error');
-            }
-        };
-
-        checkAdmin();
-    }, [navigate]);
+        if (loading) return;
+        if (user.role !== 'ROLE_ADMIN') {
+            navigate('/role-error');
+        }
+    }, [user, loading, navigate]);
 
     useEffect(() => {
-        fetchMembers();
-    }, [page]);
+        if (!loading) {
+            fetchMembers();
+        }
+    }, [page, loading]);
 
     const fetchMembers = async () => {
         try {
@@ -64,6 +57,13 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
         }));
     };
 
+    const handleStatusSelect = (memberId, status) => {
+        setSelectedStatus((prevSelectedStatus) => ({
+            ...prevSelectedStatus,
+            [memberId]: status,
+        }));
+    };
+
     const handleRoleChange = async (memberId) => {
         const newRole = selectedRole[memberId];
         if (newRole) {
@@ -81,13 +81,34 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
         }
     };
 
+    const handleStatusChange = async (memberId) => {
+        const newStatus = selectedStatus[memberId];
+        if (newStatus) {
+            try {
+                if (newStatus === 'BLOCKED') {
+                    await blockMember(memberId);
+                } else {
+                    await unblockMember(memberId);
+                }
+                setMembers(members.map(member =>
+                    member.id === memberId ? {...member, blocked: newStatus === 'BLOCKED'} : member
+                ));
+                clearSelectionAndDialogs();
+                setShowSuccessDialog(true);
+            } catch (error) {
+                console.error('Failed to change status:', error);
+                setShowErrorDialog(true);
+            }
+        }
+    };
+
     const handleDeleteMember = async () => {
         if (deleteMemberId !== null) {
             try {
                 await deleteMember(deleteMemberId);
                 setMembers(members.filter(member => member.id !== deleteMemberId));
                 clearSelectionAndDialogs();
-                setShowDeleteSuccessDialog(true); // 삭제 성공 모달 표시
+                setShowDeleteSuccessDialog(true);
             } catch (error) {
                 console.error('Failed to delete member:', error);
                 setShowErrorDialog(true);
@@ -119,6 +140,7 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
         setDeleteMemberId(null);
         setDeleteMemberNickname('');
         setSelectedRole({});
+        setSelectedStatus({});
     };
 
     return (
@@ -138,19 +160,18 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
                             <TableHeader>ID</TableHeader>
                             <TableHeader>이메일</TableHeader>
                             <TableHeader>닉네임</TableHeader>
-                            <TableHeader>역할</TableHeader>
                             <TableHeader>역할 변경</TableHeader>
+                            <TableHeader>계정 상태</TableHeader>
                             <TableHeader>삭제</TableHeader>
                         </tr>
                         </thead>
                         <tbody>
                         {members.length > 0 ? (
                             members.map((member) => (
-                                <TableRow key={member.id}>
+                                <TableRow key={member.id} blocked={member.blocked}>
                                     <TableData>{member.id}</TableData>
                                     <TableData>{member.email}</TableData>
                                     <TableData>{member.nickname}</TableData>
-                                    <TableData>{member.role}</TableData>
                                     <TableData>
                                         <RoleChangeWrapper>
                                             <RoleSelect
@@ -158,21 +179,41 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
                                                 onChange={(e) =>
                                                     handleRoleSelect(member.id, e.target.value)
                                                 }
-                                                disabled={member.id === currentUserId}
+                                                disabled={member.id === user.id}
                                             >
                                                 <option value="ADMIN">ADMIN</option>
                                                 <option value="USER">USER</option>
                                             </RoleSelect>
                                             <ConfirmButton
                                                 onClick={() => handleRoleChange(member.id)}
-                                                disabled={member.id === currentUserId}
+                                                disabled={member.id === user.id}
                                             >
                                                 확인
                                             </ConfirmButton>
                                         </RoleChangeWrapper>
                                     </TableData>
                                     <TableData>
-                                        {member.id !== currentUserId && (
+                                        <RoleChangeWrapper>
+                                            <RoleSelect
+                                                value={selectedStatus[member.id] || (member.blocked ? 'BLOCKED' : 'ACTIVE')}
+                                                onChange={(e) =>
+                                                    handleStatusSelect(member.id, e.target.value)
+                                                }
+                                                disabled={member.id === user.id}
+                                            >
+                                                <option value="ACTIVE">활성화</option>
+                                                <option value="BLOCKED">잠금</option>
+                                            </RoleSelect>
+                                            <ConfirmButton
+                                                onClick={() => handleStatusChange(member.id)}
+                                                disabled={member.id === user.id}
+                                            >
+                                                확인
+                                            </ConfirmButton>
+                                        </RoleChangeWrapper>
+                                    </TableData>
+                                    <TableData>
+                                        {member.id !== user.id && (
                                             <DeleteButton
                                                 onClick={() => confirmDeleteMember(member.id, member.role, member.nickname)}>
                                                 삭제
@@ -183,7 +224,7 @@ const Admin = ({sidebarOpen, toggleSidebar}) => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableData colSpan="6">회원 정보가 없습니다.</TableData>
+                                <TableData colSpan="7">회원 정보가 없습니다.</TableData>
                             </TableRow>
                         )}
                         </tbody>
@@ -325,8 +366,10 @@ const TableHeader = styled.th`
 `;
 
 const TableRow = styled.tr`
+    background-color: ${({blocked}) => (blocked ? '#f8d7da' : 'transparent')};
+
     &:hover {
-        background-color: #f1f1f1;
+        background-color: ${({blocked}) => (blocked ? '#f5c6cb' : '#f1f1f1')};
     }
 `;
 

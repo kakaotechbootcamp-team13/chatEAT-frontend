@@ -1,29 +1,16 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {logout} from '../services/authService.js';
-import {getUserInfo} from '../services/memberService';
+import {useUser} from '../contexts/UserContext.jsx'; // UserContext 사용
 
 const Sidebar = ({open}) => {
-    const [nickname, setNickname] = useState('');
-    const [role, setRole] = useState('');
+    const {user, loading} = useUser(); // 사용자 정보를 Context에서 가져옴
     const [showLogoutDialog, setShowLogoutDialog] = useState(false); // 로그아웃 확인 모달 상태
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const userInfo = await getUserInfo();
-                setNickname(userInfo.nickname);
-                setRole(userInfo.role);  // role 정보를 가져와서 저장
-            } catch (error) {
-                console.error('사용자 정보를 가져오는데 실패했습니다.', error);
-            }
-        };
-
-        fetchUserInfo();
-    }, []);
+    if (loading) return null; // 사용자 정보 로딩 중일 때 로딩 상태를 표시하거나 null 반환
 
     const handleLogout = async () => {
         try {
@@ -63,14 +50,14 @@ const Sidebar = ({open}) => {
         <SidebarContainer open={open}>
             <UserProfile>
                 <Avatar/>
-                <UserName>{nickname}</UserName>
+                <UserName>{user.nickname}</UserName>
             </UserProfile>
             <SidebarMenu>
                 <SidebarButton onClick={goToChat}>채팅</SidebarButton>
                 <SidebarButton>보관함</SidebarButton>
                 <SidebarButton>좋아요</SidebarButton>
                 <SidebarButton onClick={goToMyInfo}>내 정보</SidebarButton>
-                {role === 'ROLE_ADMIN' && (
+                {user.role === 'ROLE_ADMIN' && (
                     <SidebarButton onClick={goToAdminPage}>관리자 페이지</SidebarButton>
                 )}
             </SidebarMenu>
