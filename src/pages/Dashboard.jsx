@@ -86,6 +86,8 @@ Dashboard.propTypes = {
 
 export default Dashboard;
 
+
+
 const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
     const handleChange=(e)=>{
         setInputValue(e.target.value);
@@ -107,7 +109,8 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
                 placeholder="채팅을 입력하세요..."
                 rows={1}
             />
-            <SendButton visible={inputValue.length > 0 ? 'block' : undefined} onClick={handleSend}>
+
+            <SendButton $visible={inputValue.length > 0 ? 'block' : undefined} onClick={handleSend}>
                 <ArrowIcon src="/src/assets/arrow.png" alt="send" />
             </SendButton>
         </ChatInputContainer>
@@ -116,7 +119,7 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
 
 const ChatMessage = ({message}) => {
     return (
-        <StyledChatMessage sender={message.sender}>
+        <StyledChatMessage $sender={message.sender}>
             {message.text}
         </StyledChatMessage>
     );
@@ -226,14 +229,14 @@ const ChatBox = styled.div`
 `;
 
 const StyledChatMessage = styled.div`
-    align-self: ${({ sender }) => (sender === 'user' ? 'flex-end' : 'flex-start')};
-    background-color: ${({ sender }) => (sender === 'user' ? '#ffffff' : 'rgba(139, 69, 19, 0.7)')};
-    color: ${({ sender }) => (sender === 'user' ? '#000' : '#fff')};
+    align-self: ${({ $sender }) => ($sender === 'user' ? 'flex-end' : 'flex-start')};
+    background-color: ${({ $sender }) => ($sender === 'user' ? '#ffffff' : 'rgba(139, 69, 19, 0.7)')};
+    color: ${({ $sender }) => ($sender === 'user' ? '#000' : '#fff')};
     width: auto;
     max-width: 500px;
     padding: 10px;
     margin-bottom: 10px;
-    border-radius: ${({ sender }) => (sender === 'user' ? '15px 15px 0px 15px' : '15px 15px 15px 0px')};
+    border-radius: ${({ $sender }) => ($sender === 'user' ? '15px 15px 0px 15px' : '15px 15px 15px 0px')};
     border: 1px solid #8b4513;
     word-wrap: break-word;
     box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
@@ -280,7 +283,7 @@ const SendButton = styled.button`
     padding: 7px;
     border-radius: 16px;
     cursor: pointer;
-    display: ${({ visible }) => (visible ? 'block' : 'none')};
+    display: ${({ $visible }) => ($visible ? 'block' : 'none')};
 `;
 
 const ArrowIcon = styled.img`
