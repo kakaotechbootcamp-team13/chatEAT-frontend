@@ -6,12 +6,7 @@ const KakaoLoginRedirect = () => {
 
     useEffect(() => {
         const queryParams = new URLSearchParams(window.location.search);
-        const email = queryParams.get('email');
-        console.log(email)
-        const nickname = queryParams.get('nickname');
-        console.log(nickname)
         let accessToken = queryParams.get('accessToken');
-        console.log(accessToken)
         let refreshToken = queryParams.get('refreshToken');
 
         if (accessToken && accessToken.startsWith('Bearer ')) {
@@ -22,7 +17,7 @@ const KakaoLoginRedirect = () => {
         if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
         navigate("/dashboard");
-        
+
     }, [navigate]);
 
     return null;

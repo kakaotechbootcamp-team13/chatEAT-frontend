@@ -1,11 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import {useNavigate} from 'react-router-dom';
-import {checkNickname, getUserInfo, updateNickname, updatePassword} from '../services/memberService';
+import {checkNickname, updateNickname, updatePassword} from '../services/memberService';
 import Sidebar from '../components/Sidebar';
 import PropTypes from 'prop-types';
+import {useUser} from '../contexts/UserContext';
 
 const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
+    const {user, loading} = useUser();
     const [newNickname, setNewNickname] = useState('');
     const [nicknameError, setNicknameError] = useState('');
     const [showNicknameModal, setShowNicknameModal] = useState(false);
@@ -18,21 +20,9 @@ const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
     const [isNicknameValid, setIsNicknameValid] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    const [isSocialUser, setIsSocialUser] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const userInfo = await getUserInfo();
-                setIsSocialUser(userInfo.socialType === 'KAKAO'); // 소셜 로그인 확인
-            } catch (error) {
-                console.error('사용자 정보를 가져오는데 실패했습니다.', error);
-            }
-        };
-
-        fetchUserInfo();
-    }, []);
+    if (loading) return null;
 
     const handleNicknameChange = async (e) => {
         const nickname = e.target.value;
@@ -138,7 +128,7 @@ const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
                 </Header>
                 <FormWrapper>
                     <UpdateButton onClick={() => setShowNicknameModal(true)}>닉네임 변경하기</UpdateButton>
-                    {!isSocialUser && (
+                    {!user.socialType && (
                         <UpdateButton onClick={handlePasswordUpdateClick}>비밀번호 변경하기</UpdateButton>
                     )}
                 </FormWrapper>

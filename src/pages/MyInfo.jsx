@@ -1,31 +1,20 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import {withdraw, withdrawOAuth2} from '../services/authService';
-import {getUserInfo} from '../services/memberService';
+import {useUser} from '../contexts/UserContext'; // UserContext 사용
 
 const MyInfo = ({sidebarOpen, toggleSidebar}) => {
-    const [userInfo, setUserInfo] = useState({email: '', nickname: '', socialType: null});
+    const {user, loading} = useUser();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    const [showSuccessDialog, setShowSuccessDialog] = useState(false); // 탈퇴 완료 모달 상태
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [password, setPassword] = useState('');
     const [inputError, setInputError] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const data = await getUserInfo();
-                setUserInfo({email: data.email, nickname: data.nickname, socialType: data.socialType, role: data.role});
-            } catch (error) {
-                console.error('사용자 정보를 가져오는데 실패했습니다.', error);
-            }
-        };
-
-        fetchUserInfo();
-    }, []);
+    if (loading) return null;
 
     const handleWithdrawClick = () => {
         setShowConfirmDialog(true);
@@ -33,8 +22,8 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
 
     const handleConfirmWithdraw = async () => {
         try {
-            if (userInfo.socialType === 'KAKAO') {
-                if (password === userInfo.nickname) {
+            if (user.socialType === 'KAKAO') {
+                if (password === user.nickname) {
                     await withdrawOAuth2();
                 } else {
                     setInputError('닉네임이 일치하지 않습니다.');
@@ -46,7 +35,7 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             setShowConfirmDialog(false);
-            setShowSuccessDialog(true); // 탈퇴 완료 모달 표시
+            setShowSuccessDialog(true);
         } catch (error) {
             setInputError('비밀번호를 확인해주세요.');
             console.error('회원 탈퇴 실패:', error);
@@ -80,19 +69,19 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                         <InfoBox>
                             <InfoItem>
                                 <Label>이메일:</Label>
-                                <Value>{userInfo.email}</Value>
+                                <Value>{user.email}</Value> {}
                             </InfoItem>
                             <InfoItem>
                                 <Label>닉네임:</Label>
-                                <Value>{userInfo.nickname}</Value>
+                                <Value>{user.nickname}</Value> {}
                             </InfoItem>
-                            {userInfo.socialType === 'KAKAO' && (
+                            {user.socialType === 'KAKAO' && (
                                 <InfoItem>
                                     <Label>소셜 로그인:</Label>
                                     <Value>카카오</Value>
                                 </InfoItem>
                             )}
-                            {userInfo.role === 'ROLE_ADMIN' && (
+                            {user.role === 'ROLE_ADMIN' && (
                                 <InfoItem>
                                     <Label>역할:</Label>
                                     <Value>관리자</Value>
@@ -108,11 +97,11 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                         <DialogContent>
                             <DialogTitle>정말 회원 탈퇴를 하시겠습니까?</DialogTitle>
                             <InputLabel>
-                                {userInfo.socialType === 'KAKAO' ? '닉네임 확인' : '비밀번호 확인'}
+                                {user.socialType === 'KAKAO' ? '닉네임 확인' : '비밀번호 확인'}
                             </InputLabel>
                             <DialogInput
-                                type={userInfo.socialType === 'KAKAO' ? 'text' : 'password'}
-                                placeholder={userInfo.socialType === 'KAKAO' ? '닉네임을 입력하세요.' : '비밀번호를 입력하세요.'}
+                                type={user.socialType === 'KAKAO' ? 'text' : 'password'}
+                                placeholder={user.socialType === 'KAKAO' ? '닉네임을 입력하세요.' : '비밀번호를 입력하세요.'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
