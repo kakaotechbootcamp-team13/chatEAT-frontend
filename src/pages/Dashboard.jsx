@@ -1,10 +1,28 @@
-import React from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Sidebar from '../components/Sidebar';
+import useChatScroll from "../hooks/useChatScroll.js";
+import { handleSend } from '../services/handleSend';
 
 const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
+    const [inputValue, setInputValue] = useState('');
+    const [chatMessages, setChatMessages] = useState([]);
+    const [buttonVisible, setButtonVisible] = useState(true);
+    const chatBoxRef = useChatScroll(chatMessages);
+
+    const handleButtonClick = (text) => {
+        handleSend(text, setChatMessages);
+        setButtonVisible(false);
+    };
+
+    const handleInputSubmit = () => {
+        handleSend(inputValue, setChatMessages);
+        setButtonVisible(false);
+        setInputValue('');
+    };
+
     return (
         <Container>
             <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
@@ -22,17 +40,37 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                         </Link>
                     </HeaderContent>
                 </Header>
-                <Main>
-                    <Button>카부캠 근처 맛집 랜덤 추천</Button>
-                    <Button>오늘의 날씨</Button>
-                    <Button>카부캠 근처 교통 정보 안내</Button>
+                <Main ref={chatBoxRef}>
+                    {!buttonVisible && (
+                        <ChatBox>
+                            {chatMessages.map((msg, index) => (
+                                <ChatMessage key={index} message={msg}/>
+                            ))}
+                        </ChatBox>
+                    )}
+                    {buttonVisible && (
+                        <>
+                            <Button onClick={()=>handleButtonClick('카부캠 근처 맛집 랜덤 추천')}>
+                                <ButtonImg src={"src/assets/meal.png"} alt="icon"/>
+                                카부캠 근처 맛집 랜덤 추천
+                            </Button>
+                            <Button onClick={()=>handleButtonClick('오늘의 날씨')}>
+                                <ButtonImg src={"src/assets/weather.png"} alt="icon"/>
+                                오늘의 날씨
+                            </Button>
+                            <Button onClick={()=>handleButtonClick('카부캠 근처 교통 정보 안내')}>
+                                <ButtonImg src={"src/assets/transportation.png"} alt="icon"/>
+                                카부캠 근처 교통 정보 안내
+                            </Button>
+                        </>
+                    )}
                 </Main>
                 <ChatInputSection>
                     <ChatInputContainer>
-                        <ChatInput
-                            placeholder="채팅을 입력하세요..."
-                            rows={1}
-                        />
+                        <ChatInputWithButton
+                            inputValue={inputValue}
+                            setInputValue={setInputValue}
+                            handleSend={handleInputSubmit}/>
                     </ChatInputContainer>
                     <Disclaimer>ChatEAT는 실수를 할 수 있습니다. 중요한 정보를 확인하세요.</Disclaimer>
                 </ChatInputSection>
@@ -47,6 +85,45 @@ Dashboard.propTypes = {
 };
 
 export default Dashboard;
+
+
+
+const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
+    const handleChange=(e)=>{
+        setInputValue(e.target.value);
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    return (
+        <ChatInputContainer>
+            <ChatInput
+                value={inputValue}
+                onChange={handleChange}
+                onKeyPress={handleKeyPress}
+                placeholder="채팅을 입력하세요..."
+                rows={1}
+            />
+
+            <SendButton $visible={inputValue.length > 0 ? 'block' : undefined} onClick={handleSend}>
+                <ArrowIcon src="/src/assets/arrow.png" alt="send" />
+            </SendButton>
+        </ChatInputContainer>
+    );
+};
+
+const ChatMessage = ({message}) => {
+    return (
+        <StyledChatMessage $sender={message.sender}>
+            {message.text}
+        </StyledChatMessage>
+    );
+};
 
 // 스타일링 관련 코드
 const Container = styled.div`
@@ -111,9 +188,15 @@ const Main = styled.div`
     gap: 20px;
     transition: transform 0.3s ease-in-out;
     padding: 0 20px;
+    //overflow: hidden;
+    overflow-y: auto;
 `;
 
 const Button = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
     padding: 20px;
     font-size: 18px;
     border: 2px solid #8b4513;
@@ -121,10 +204,42 @@ const Button = styled.button`
     background-color: #fff;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    word-break: keep-all;
 
     &:hover {
         background-color: #f0e6d6;
     }
+`;
+
+const ButtonImg = styled.img`
+    width: 35px;
+    height: auto;
+    margin-right: 10px;
+`
+
+const ChatBox = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    height: 100%;
+    flex: 1;
+    //overflow-y: auto;
+    padding: 10px;
+`;
+
+const StyledChatMessage = styled.div`
+    align-self: ${({ $sender }) => ($sender === 'user' ? 'flex-end' : 'flex-start')};
+    background-color: ${({ $sender }) => ($sender === 'user' ? '#ffffff' : 'rgba(139, 69, 19, 0.7)')};
+    color: ${({ $sender }) => ($sender === 'user' ? '#000' : '#fff')};
+    width: auto;
+    max-width: 500px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: ${({ $sender }) => ($sender === 'user' ? '15px 15px 0px 15px' : '15px 15px 15px 0px')};
+    border: 1px solid #8b4513;
+    word-wrap: break-word;
+    box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
 `;
 
 const ChatInputSection = styled.div`
@@ -136,15 +251,15 @@ const ChatInputSection = styled.div`
 `;
 
 const ChatInputContainer = styled.div`
-    display: flex;
-    justify-content: center;
+    position: relative;
     width: 100%;
+    max-width: 700px;
 `;
 
 const ChatInput = styled.textarea`
     width: 100%;
     max-width: 700px;
-    padding: 10px;
+    padding: 10px 45px 10px 10px;
     font-size: 16px;
     border: 2px solid #8b4513;
     border-radius: 20px;
@@ -154,6 +269,26 @@ const ChatInput = styled.textarea`
     max-height: 100px;
     height: auto;
     line-height: 1.5;
+    box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
+`;
+
+const SendButton = styled.button`
+    position: absolute;
+    right: 7px;
+    top: 45%;
+    transform: translateY(-50%);
+    background-color: #8b4513;
+    color: white;
+    border: none;
+    padding: 7px;
+    border-radius: 16px;
+    cursor: pointer;
+    display: ${({ $visible }) => ($visible ? 'block' : 'none')};
+`;
+
+const ArrowIcon = styled.img`
+    width: 20px;  // 아이콘 크기 조절
+    height: 20px;
 `;
 
 const Disclaimer = styled.p`
