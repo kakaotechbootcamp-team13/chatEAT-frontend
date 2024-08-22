@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Sidebar from '../components/Sidebar';
 import useChatScroll from "../hooks/useChatScroll.js";
+import { handleSend } from '../services/handleSend';
 
 const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const [inputValue, setInputValue] = useState('');
@@ -11,20 +12,15 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const [buttonVisible, setButtonVisible] = useState(true);
     const chatBoxRef = useChatScroll(chatMessages);
 
-    const handleSend = (message) => {
-        if (message.trim()) {
-            setChatMessages([...chatMessages, message]);
-            setInputValue('');
-            setButtonVisible(false);
-        }
-    };
-
     const handleButtonClick = (text) => {
-        handleSend(text);
+        handleSend(text, setChatMessages);
+        setButtonVisible(false);
     };
 
     const handleInputSubmit = () => {
-        handleSend(inputValue);
+        handleSend(inputValue, setChatMessages);
+        setButtonVisible(false);
+        setInputValue('');
     };
 
     return (
@@ -48,7 +44,7 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                     {!buttonVisible && (
                         <ChatBox>
                             {chatMessages.map((msg, index) => (
-                                <ChatMessage key={index}>{msg}</ChatMessage>
+                                <ChatMessage key={index} message={msg}/>
                             ))}
                         </ChatBox>
                     )}
@@ -115,6 +111,14 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
                 <ArrowIcon src="/src/assets/arrow.png" alt="send" />
             </SendButton>
         </ChatInputContainer>
+    );
+};
+
+const ChatMessage = ({message}) => {
+    return (
+        <StyledChatMessage sender={message.sender}>
+            {message.text}
+        </StyledChatMessage>
     );
 };
 
@@ -221,16 +225,18 @@ const ChatBox = styled.div`
     padding: 10px;
 `;
 
-const ChatMessage = styled.div`
-    align-self: flex-end;
+const StyledChatMessage = styled.div`
+    align-self: ${({ sender }) => (sender === 'user' ? 'flex-end' : 'flex-start')};
+    background-color: ${({ sender }) => (sender === 'user' ? '#ffffff' : 'rgba(139, 69, 19, 0.7)')};
+    color: ${({ sender }) => (sender === 'user' ? '#000' : '#fff')};
     width: auto;
     max-width: 500px;
-    background-color: #ffffff;
     padding: 10px;
     margin-bottom: 10px;
-    border-radius: 15px 15px 0px 15px;
+    border-radius: ${({ sender }) => (sender === 'user' ? '15px 15px 0px 15px' : '15px 15px 15px 0px')};
     border: 1px solid #8b4513;
     word-wrap: break-word;
+    box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
 `;
 
 const ChatInputSection = styled.div`
@@ -260,6 +266,7 @@ const ChatInput = styled.textarea`
     max-height: 100px;
     height: auto;
     line-height: 1.5;
+    box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
 `;
 
 const SendButton = styled.button`
