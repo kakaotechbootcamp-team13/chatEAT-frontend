@@ -1,16 +1,46 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Sidebar from '../components/Sidebar';
 import useChatScroll from "../hooks/useChatScroll.js";
 import { handleSend } from '../services/handleSend';
+import apiClient from "../services/apiClient.js";
+import { format } from 'date-fns';
 
 const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
     const [buttonVisible, setButtonVisible] = useState(true);
     const chatBoxRef = useChatScroll(chatMessages);
+
+    useEffect(() => {
+        const fetchChatHistory = async () => {
+            try {
+                const response = await apiClient.get('/chats');
+
+                const formattedMessages = response.data.map((msg) => {
+                    const timestamp = new Date(msg.timestamp);
+
+                    if (isNaN(timestamp)) {
+                        return null;
+                    }
+                    return {
+                        text: msg.message,
+                        sender: msg.botResponse ? 'bot' : 'user',
+                        timestamp: timestamp
+                    };
+                }).filter(Boolean);
+
+                setChatMessages(formattedMessages);
+            } catch (error) {
+                console.error('Error fetching chat history:', error);
+            }
+        };
+
+        fetchChatHistory();
+    }, []);
+
 
     const handleButtonClick = (text) => {
         handleSend(text, setChatMessages);
@@ -21,6 +51,14 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
         handleSend(inputValue, setChatMessages);
         setButtonVisible(false);
         setInputValue('');
+    };
+
+    const formatDate = (date) => {
+        if (!(date instanceof Date) || isNaN(date)) {
+            console.error('Invalid date value in formatDate:', date);
+            return '';
+        }
+        return format(date, 'yyyy-MM-dd');
     };
 
     return (
@@ -43,9 +81,23 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                 <Main ref={chatBoxRef}>
                     {!buttonVisible && (
                         <ChatBox>
-                            {chatMessages.map((msg, index) => (
-                                <ChatMessage key={index} message={msg}/>
-                            ))}
+                            {chatMessages.map((msg, index) => {
+                                const currentFormattedDate = formatDate(msg.timestamp);
+                                const previousFormattedDate = index > 0 ? formatDate(chatMessages[index - 1].timestamp) : null;
+
+                                if (!currentFormattedDate) {
+                                    return null;
+                                }
+
+                                const showDate = index === 0 || currentFormattedDate !== previousFormattedDate;
+
+                                return (
+                                    <Chatting key={index}>
+                                        {showDate && <DateLabel>{currentFormattedDate}</DateLabel>}
+                                        <ChatMessage message={msg} />
+                                    </Chatting>
+                                );
+                            })}
                         </ChatBox>
                     )}
                     {buttonVisible && (
@@ -117,7 +169,7 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
     );
 };
 
-const ChatMessage = ({message}) => {
+const ChatMessage = ({ message }) => {
     return (
         <StyledChatMessage $sender={message.sender}>
             {message.text}
@@ -224,9 +276,14 @@ const ChatBox = styled.div`
     max-width: 700px;
     height: 100%;
     flex: 1;
-    //overflow-y: auto;
     padding: 10px;
 `;
+
+const Chatting = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+`
 
 const StyledChatMessage = styled.div`
     align-self: ${({ $sender }) => ($sender === 'user' ? 'flex-end' : 'flex-start')};
@@ -296,4 +353,18 @@ const Disclaimer = styled.p`
     font-size: 12px;
     color: #8b4513;
     text-align: center;
+`;
+
+const DateLabel = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #8b4513;
+    background-color: #f0e6d6;
+    padding: 8px 16px;
+    margin: 16px 0;
+    border-radius: 12px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 `;
