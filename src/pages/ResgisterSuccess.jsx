@@ -2,23 +2,6 @@ import React, {useState} from 'react';
 import {Link, Navigate, useLocation} from 'react-router-dom';
 import styled, {keyframes} from 'styled-components';
 
-const fadeIn = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-`;
-
-const blink = keyframes`
-    50% {
-        opacity: 0;
-    }
-`;
-
 const RegisterSuccess = () => {
     const location = useLocation();
     const {email, nickname} = location.state || {};
@@ -62,6 +45,23 @@ const RegisterSuccess = () => {
 export default RegisterSuccess;
 
 // 스타일링 관련 코드
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
+
+const blink = keyframes`
+    50% {
+        opacity: 0;
+    }
+`;
+
 const Container = styled.div`
     display: flex;
     flex-direction: column;

@@ -29,7 +29,6 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// 요청 인터셉터
 apiClient.interceptors.request.use((config) => {
     const excludedPaths = [
         '/members/join',
@@ -50,7 +49,6 @@ apiClient.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-// 응답 인터셉터
 apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {

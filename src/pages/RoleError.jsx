@@ -7,7 +7,7 @@ const RoleError = () => {
     const navigate = useNavigate();
 
     const handleGoHome = () => {
-        navigate('/'); // 홈으로 이동
+        navigate('/');
     };
 
     return (

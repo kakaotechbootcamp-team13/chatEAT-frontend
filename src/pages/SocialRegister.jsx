@@ -15,7 +15,6 @@ const SocialRegister = () => {
 
     const queryParams = new URLSearchParams(location.search);
     const email = queryParams.get('email');
-    const refreshToken = queryParams.get('refreshToken');
     const role = queryParams.get('role');
 
     useEffect(() => {
@@ -30,8 +29,7 @@ const SocialRegister = () => {
         }
 
         if (accessToken) localStorage.setItem('accessToken', accessToken);
-        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-    }, [refreshToken, role, navigate]);
+    }, [role, navigate, queryParams]);
 
     const handleNicknameBlur = async () => {
         if (nickname.length < 2 || nickname.length > 20) {

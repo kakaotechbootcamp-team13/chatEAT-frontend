@@ -3,14 +3,14 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {logout} from '../services/authService.js';
-import {useUser} from '../contexts/UserContext.jsx'; // UserContext 사용
+import {useUser} from '../contexts/UserContext.jsx';
 
 const Sidebar = ({open}) => {
-    const {user, loading} = useUser(); // 사용자 정보를 Context에서 가져옴
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false); // 로그아웃 확인 모달 상태
+    const {user, loading} = useUser();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const navigate = useNavigate();
 
-    if (loading) return null; // 사용자 정보 로딩 중일 때 로딩 상태를 표시하거나 null 반환
+    if (loading) return null;
 
     const handleLogout = async () => {
         try {
@@ -23,11 +23,11 @@ const Sidebar = ({open}) => {
     };
 
     const handleLogoutClick = () => {
-        setShowLogoutDialog(true); // 로그아웃 확인 모달 표시
+        setShowLogoutDialog(true);
     };
 
     const handleCancelLogout = () => {
-        setShowLogoutDialog(false); // 로그아웃 확인 모달 닫기
+        setShowLogoutDialog(false);
     };
 
     const goToMyInfo = () => {
@@ -43,7 +43,7 @@ const Sidebar = ({open}) => {
     };
 
     const goToAdminPage = () => {
-        navigate('/admin');  // 관리자 페이지로 이동
+        navigate('/admin');
     };
 
     return (
