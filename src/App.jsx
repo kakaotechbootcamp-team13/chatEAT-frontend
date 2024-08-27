@@ -14,6 +14,7 @@ import SocialRegister from "./pages/SocialRegister.jsx";
 import KakaoLoginRedirect from "./pages/KakaoLoginRedirect.jsx";
 import Admin from "./pages/Admin.jsx";
 import RoleError from "./pages/RoleError.jsx";
+import Like from "./pages/Like.jsx"
 import {UserProvider} from './contexts/UserContext.jsx'; // UserProvider 가져오기
 
 const App = () => {
@@ -54,6 +55,11 @@ const App = () => {
                         <Route path="/admin" element={
                             <ProtectedRoute>
                                 <Admin sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
+                            </ProtectedRoute>
+                        }/>
+                        <Route path="/like" element={
+                            <ProtectedRoute>
+                                <Like sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}/>
                             </ProtectedRoute>
                         }/>
                         <Route path="*" element={<ErrorPage/>}/>

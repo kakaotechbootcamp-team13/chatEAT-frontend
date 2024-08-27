@@ -46,6 +46,10 @@ const Sidebar = ({open}) => {
         navigate('/admin');  // 관리자 페이지로 이동
     };
 
+    const goToLike=() => {
+        navigate('/like');
+    }
+
     return (
         <SidebarContainer open={open}>
             <UserProfile>
@@ -54,8 +58,7 @@ const Sidebar = ({open}) => {
             </UserProfile>
             <SidebarMenu>
                 <SidebarButton onClick={goToChat}>채팅</SidebarButton>
-                <SidebarButton>보관함</SidebarButton>
-                <SidebarButton>좋아요</SidebarButton>
+                <SidebarButton onClick={goToLike}>좋아요</SidebarButton>
                 <SidebarButton onClick={goToMyInfo}>내 정보</SidebarButton>
                 {user.role === 'ROLE_ADMIN' && (
                     <SidebarButton onClick={goToAdminPage}>관리자 페이지</SidebarButton>
