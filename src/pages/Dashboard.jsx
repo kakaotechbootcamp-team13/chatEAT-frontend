@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
@@ -6,13 +6,16 @@ import Sidebar from '../components/Sidebar';
 import useChatScroll from "../hooks/useChatScroll.js";
 import { handleSend } from '../services/handleSend';
 import apiClient from "../services/apiClient.js";
+import ChatMessage from "../components/ChatMessage.jsx";
 import { format } from 'date-fns';
 
 const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
+    const [likedMessages, setLikedMessages] = useState([]);
     const [buttonVisible, setButtonVisible] = useState(true);
     const chatBoxRef = useChatScroll(chatMessages);
+    const shouldScrollRef = useRef(false);
 
     useEffect(() => {
         const fetchChatHistory = async () => {
@@ -26,9 +29,11 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                         return null;
                     }
                     return {
+                        id: msg.id,
                         text: msg.message,
                         sender: msg.botResponse ? 'bot' : 'user',
-                        timestamp: timestamp
+                        timestamp: timestamp,
+                        userEmail: msg.email
                     };
                 }).filter(Boolean);
 
@@ -38,7 +43,18 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
             }
         };
 
+        const fetchUserLikes = async() => {
+            try{
+                const response = await apiClient.get('/likes');
+
+                setLikedMessages(response.data.map(like=>like.messageId));
+            } catch (error) {
+                console.error('Failed to fetch user likes:', error);
+            }
+        };
+
         fetchChatHistory();
+        fetchUserLikes();
     }, []);
 
 
@@ -52,6 +68,22 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
         setButtonVisible(false);
         setInputValue('');
     };
+
+    const handleViewChatClick = () => {
+        setButtonVisible(false);
+        shouldScrollRef.current = true;
+    };
+
+    const handleRemoveLike = (messageId) => {
+        setLikedMessages(likedMessages.filter(msg => msg.id !== messageId));
+    };
+
+    useEffect(() => {
+        if (shouldScrollRef.current && chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+            shouldScrollRef.current = false;
+        }
+    }, [buttonVisible]);
 
     const formatDate = (date) => {
         if (!(date instanceof Date) || isNaN(date)) {
@@ -90,11 +122,12 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                                 }
 
                                 const showDate = index === 0 || currentFormattedDate !== previousFormattedDate;
+                                const isLiked = likedMessages.includes(msg.id);
 
                                 return (
                                     <Chatting key={index}>
                                         {showDate && <DateLabel>{currentFormattedDate}</DateLabel>}
-                                        <ChatMessage message={msg} />
+                                        <ChatMessage message={msg} isLiked={isLiked} onRemoveLike={handleRemoveLike}/>
                                     </Chatting>
                                 );
                             })}
@@ -117,6 +150,11 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                         </>
                     )}
                 </Main>
+                {buttonVisible && (
+                    <CenterAlignedContainer>
+                        <ViewChatting onClick={handleViewChatClick}>채팅보기</ViewChatting>
+                    </CenterAlignedContainer>
+                )}
                 <ChatInputSection>
                     <ChatInputContainer>
                         <ChatInputWithButton
@@ -137,8 +175,6 @@ Dashboard.propTypes = {
 };
 
 export default Dashboard;
-
-
 
 const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
     const handleChange=(e)=>{
@@ -166,14 +202,6 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
                 <ArrowIcon src="/src/assets/arrow.png" alt="send" />
             </SendButton>
         </ChatInputContainer>
-    );
-};
-
-const ChatMessage = ({ message }) => {
-    return (
-        <StyledChatMessage $sender={message.sender}>
-            {message.text}
-        </StyledChatMessage>
     );
 };
 
@@ -240,7 +268,6 @@ const Main = styled.div`
     gap: 20px;
     transition: transform 0.3s ease-in-out;
     padding: 0 20px;
-    //overflow: hidden;
     overflow-y: auto;
 `;
 
@@ -269,6 +296,26 @@ const ButtonImg = styled.img`
     margin-right: 10px;
 `
 
+const CenterAlignedContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px; /* 상단 여백 추가 */
+`;
+
+const ViewChatting = styled.p`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    word-break: keep-all;
+    margin-top: 20px;
+
+    &:hover {
+        color: #4e4e4e;
+    }
+`
+
 const ChatBox = styled.div`
     display: flex;
     flex-direction: column;
@@ -284,20 +331,6 @@ const Chatting = styled.div`
     flex-direction: column;
     width: 100%;
 `
-
-const StyledChatMessage = styled.div`
-    align-self: ${({ $sender }) => ($sender === 'user' ? 'flex-end' : 'flex-start')};
-    background-color: ${({ $sender }) => ($sender === 'user' ? '#ffffff' : 'rgba(139, 69, 19, 0.7)')};
-    color: ${({ $sender }) => ($sender === 'user' ? '#000' : '#fff')};
-    width: auto;
-    max-width: 500px;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: ${({ $sender }) => ($sender === 'user' ? '15px 15px 0px 15px' : '15px 15px 15px 0px')};
-    border: 1px solid #8b4513;
-    word-wrap: break-word;
-    box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, 0.4);
-`;
 
 const ChatInputSection = styled.div`
     background-color: #ffffff;
