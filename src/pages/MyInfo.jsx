@@ -33,7 +33,6 @@ const MyInfo = ({sidebarOpen, toggleSidebar}) => {
                 await withdraw(password);
             }
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
             setShowConfirmDialog(false);
             setShowSuccessDialog(true);
         } catch (error) {

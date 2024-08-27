@@ -113,7 +113,7 @@ const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
 
     const handleCloseSuccessDialog = () => {
         setShowSuccessDialog(false);
-        navigate('/myinfo');
+        navigate('/update-profile');
     };
 
     return (
@@ -339,7 +339,7 @@ const DialogTitle = styled.h2`
 const DialogActions = styled.div`
     display: flex;
     justify-content: center;
-    gap: 10px; /* 버튼 사이의 간격을 줄임 */
+    gap: 10px;
 `;
 
 const DialogButton = styled.button`
