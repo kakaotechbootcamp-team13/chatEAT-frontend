@@ -6,61 +6,61 @@ on:
       - feature/ci-cd
       - dev
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_EC2_METADATA_DISABLED: true
+
+defaults:
+  run:
+    working-directory: ./
+
 jobs:
   build:
     runs-on: ubuntu-24.04
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-      
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm install
-        working-directory: ./
-      
+
       - name: Build
         run: npm run build
-        working-directory: ./
-      
+
       - name: SHOW AWS CLI VERSION
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_EC2_METADATA_DISABLED: true
-        run: |
-          aws --version
-      
+        run: aws --version
+
       - name: Sync dist folder to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_EC2_METADATA_DISABLED: true
         run: |
           aws s3 sync \
             --region ap-northeast-2 \
             dist s3://chateat.store \
             --delete
-        working-directory: ./
-      
+
       - name: Sync assets folder to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_EC2_METADATA_DISABLED: true
         run: |
           aws s3 sync \
             src/assets s3://chateat.store/src/assets \
             --region ap-northeast-2
-        working-directory: ./
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/client:latest .
-      
+        run: docker build --cache-from ${{ secrets.DOCKER_USERNAME }}/client:latest -t ${{ secrets.DOCKER_USERNAME }}/client:latest .
+
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/client:latest
-
