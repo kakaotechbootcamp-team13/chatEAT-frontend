@@ -37,7 +37,7 @@ jobs:
         run: |
           aws s3 sync \
             --region ap-northeast-2 \
-            dist s3://chateat-front \
+            dist s3://chateat.store \
             --delete
         working-directory: ./
       
@@ -48,7 +48,7 @@ jobs:
           AWS_EC2_METADATA_DISABLED: true
         run: |
           aws s3 sync \
-            src/assets s3://chateat-front/src/assets \
+            src/assets s3://chateat.store/src/assets \
             --region ap-northeast-2
         working-directory: ./
 
