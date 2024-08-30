@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {logout, refreshAccessToken} from './authService.js';
 
-const API_URL = import.meta.env.VITE_BACK_END_URL;
+const API_URL = "https://api-chateat.store";
 
 const apiClient = axios.create({
     baseURL: API_URL,
