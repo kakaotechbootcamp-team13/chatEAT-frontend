@@ -1,28 +1,34 @@
 import apiClient from "./apiClient.js";
 
-export const handleSend = async (message, setChatMessages)  => {
+export const handleSend = async (message, setChatMessages) => {
     if (message.trim()) {
-        const timestamp = new Date();
-        setChatMessages((prevMessages) => [
-            ...prevMessages,
-            {text: message, sender:'user', timestamp}
-        ]);
+        const userMessage = {
+            text: message,
+            sender: 'user',
+            timestamp: new Date(),
+        };
+
+        setChatMessages((prevMessages) => [...prevMessages, userMessage]);
 
         try {
             const response = await apiClient.post('/chat', {message});
-            const botTimestamp = new Date();
-            setChatMessages((prevMessages) => [
-                ...prevMessages,
-                {text: response.data.message, sender: 'bot', timestamp: botTimestamp},
-            ]);
+            const botMessage = {
+                text: response.data.message,
+                sender: 'bot',
+                timestamp: new Date(),
+            };
+
+            setChatMessages((prevMessages) => [...prevMessages, botMessage]);
         } catch (error) {
             console.error('Error:', error);
 
-            const errorTimestamp = new Date();
-            setChatMessages((prevMessages) => [
-                ...prevMessages,
-                {text: 'Error in getting response from server', sender: 'bot', timestamp: errorTimestamp},
-            ]);
+            const errorMessage = {
+                text: 'Error in getting response from server',
+                sender: 'bot',
+                timestamp: new Date(),
+            };
+
+            setChatMessages((prevMessages) => [...prevMessages, errorMessage]);
         }
     }
 };

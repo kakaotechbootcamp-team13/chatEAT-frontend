@@ -1,15 +1,16 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Sidebar from '../components/Sidebar';
-import useChatScroll from "../hooks/useChatScroll.js";
-import { handleSend } from '../services/handleSend';
+import useChatScroll from '../hooks/useChatScroll.js';
+import {handleSend} from '../services/handleSend';
+import {fetchChatMessages, fetchLikedMessages} from '../services/chatService';
+import ChatMessage from '../components/ChatMessage.jsx';
+import {format} from 'date-fns';
 import apiClient from "../services/apiClient.js";
-import ChatMessage from "../components/ChatMessage.jsx";
-import { format } from 'date-fns';
 
-const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
+const Dashboard = ({sidebarOpen, toggleSidebar}) => {
     const [inputValue, setInputValue] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
     const [likedMessages, setLikedMessages] = useState([]);
@@ -18,55 +19,40 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
     const shouldScrollRef = useRef(false);
 
     useEffect(() => {
-        const fetchChatHistory = async () => {
+        const fetchChatData = async () => {
             try {
-                const response = await apiClient.get('/chats');
-
-                const formattedMessages = response.data.map((msg) => {
-                    const timestamp = new Date(msg.timestamp);
-
-                    if (isNaN(timestamp)) {
-                        return null;
-                    }
-                    return {
-                        id: msg.id,
-                        text: msg.message,
-                        sender: msg.botResponse ? 'bot' : 'user',
-                        timestamp: timestamp,
-                        userEmail: msg.email
-                    };
-                }).filter(Boolean);
-
-                setChatMessages(formattedMessages);
+                const [messages, likedMessages] = await Promise.all([
+                    fetchChatMessages(),
+                    fetchLikedMessages(),
+                ]);
+                setChatMessages(messages);
+                setLikedMessages(likedMessages);
             } catch (error) {
-                console.error('Error fetching chat history:', error);
+                console.error('Error fetching chat or likes data:', error);
             }
         };
 
-        const fetchUserLikes = async() => {
-            try{
-                const response = await apiClient.get('/likes');
-
-                setLikedMessages(response.data.map(like=>like.messageId));
-            } catch (error) {
-                console.error('Failed to fetch user likes:', error);
-            }
-        };
-
-        fetchChatHistory();
-        fetchUserLikes();
+        fetchChatData();
     }, []);
 
-
-    const handleButtonClick = (text) => {
-        handleSend(text, setChatMessages);
-        setButtonVisible(false);
+    const handleButtonClick = async (text) => {
+        try {
+            await handleSend(text, setChatMessages);
+            setButtonVisible(false);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
     };
 
-    const handleInputSubmit = () => {
-        handleSend(inputValue, setChatMessages);
-        setButtonVisible(false);
-        setInputValue('');
+    const handleInputSubmit = async () => {
+        if (!inputValue.trim()) return;
+        try {
+            await handleSend(inputValue, setChatMessages);
+            setInputValue('');
+            setButtonVisible(false);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
     };
 
     const handleViewChatClick = () => {
@@ -74,8 +60,40 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
         shouldScrollRef.current = true;
     };
 
-    const handleRemoveLike = (messageId) => {
-        setLikedMessages(likedMessages.filter(msg => msg.id !== messageId));
+    const handleLikeToggle = async (messageId) => {
+        if (!messageId) {
+            console.error("messageId is null or undefined.");
+            return;
+        }
+
+        const isCurrentlyLiked = likedMessages.includes(messageId);
+
+        // 좋아요 상태를 즉시 반영
+        setLikedMessages((prev) => {
+            if (isCurrentlyLiked) {
+                return prev.filter((id) => id !== messageId);
+            } else {
+                return [...prev, messageId];
+            }
+        });
+
+        try {
+            if (isCurrentlyLiked) {
+                await apiClient.delete(`/like/${messageId}`);
+            } else {
+                await apiClient.post('/like', {messageId});
+            }
+        } catch (error) {
+            console.error('Failed to update like status:', error);
+            // 실패 시 좋아요 상태 롤백
+            setLikedMessages((prev) => {
+                if (isCurrentlyLiked) {
+                    return [...prev, messageId];
+                } else {
+                    return prev.filter((id) => id !== messageId);
+                }
+            });
+        }
     };
 
     useEffect(() => {
@@ -83,19 +101,17 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
             chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
             shouldScrollRef.current = false;
         }
-    }, [buttonVisible]);
+    }, [buttonVisible, chatMessages]);
 
     const formatDate = (date) => {
-        if (!(date instanceof Date) || isNaN(date)) {
-            console.error('Invalid date value in formatDate:', date);
-            return '';
-        }
-        return format(date, 'yyyy-MM-dd');
+        return date instanceof Date && !isNaN(date)
+            ? format(date, 'yyyy-MM-dd')
+            : '';
     };
 
     return (
         <Container>
-            <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
+            <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar}/>
             <Content className={sidebarOpen ? 'sidebar-open' : ''}>
                 <Header>
                     <MenuButton onClick={toggleSidebar}>
@@ -103,7 +119,7 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                     </MenuButton>
                     <HeaderContent>
                         <Link to="/">
-                            <Logo src="/src/assets/logo.png" alt="ChatEAT Logo" />
+                            <Logo src="/src/assets/logo.png" alt="ChatEAT Logo"/>
                         </Link>
                         <Link to="/">
                             <Title>ChatEAT</Title>
@@ -116,18 +132,17 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                             {chatMessages.map((msg, index) => {
                                 const currentFormattedDate = formatDate(msg.timestamp);
                                 const previousFormattedDate = index > 0 ? formatDate(chatMessages[index - 1].timestamp) : null;
-
-                                if (!currentFormattedDate) {
-                                    return null;
-                                }
-
                                 const showDate = index === 0 || currentFormattedDate !== previousFormattedDate;
                                 const isLiked = likedMessages.includes(msg.id);
 
                                 return (
-                                    <Chatting key={index}>
+                                    <Chatting key={msg.id}>
                                         {showDate && <DateLabel>{currentFormattedDate}</DateLabel>}
-                                        <ChatMessage message={msg} isLiked={isLiked} onRemoveLike={handleRemoveLike}/>
+                                        <ChatMessage
+                                            message={msg}
+                                            isLiked={isLiked}
+                                            onLikeToggle={msg.isBotResponse ? () => handleLikeToggle(msg.id) : undefined}
+                                        />
                                     </Chatting>
                                 );
                             })}
@@ -135,15 +150,15 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                     )}
                     {buttonVisible && (
                         <>
-                            <Button onClick={()=>handleButtonClick('카부캠 근처 맛집 랜덤 추천')}>
+                            <Button onClick={() => handleButtonClick('카부캠 근처 맛집 랜덤 추천')}>
                                 <ButtonImg src={"src/assets/meal.png"} alt="icon"/>
                                 카부캠 근처 맛집 랜덤 추천
                             </Button>
-                            <Button onClick={()=>handleButtonClick('오늘의 날씨')}>
+                            <Button onClick={() => handleButtonClick('오늘의 날씨')}>
                                 <ButtonImg src={"src/assets/weather.png"} alt="icon"/>
                                 오늘의 날씨
                             </Button>
-                            <Button onClick={()=>handleButtonClick('카부캠 근처 교통 정보 안내')}>
+                            <Button onClick={() => handleButtonClick('카부캠 근처 교통 정보 안내')}>
                                 <ButtonImg src={"src/assets/transportation.png"} alt="icon"/>
                                 카부캠 근처 교통 정보 안내
                             </Button>
@@ -160,7 +175,8 @@ const Dashboard = ({ sidebarOpen, toggleSidebar }) => {
                         <ChatInputWithButton
                             inputValue={inputValue}
                             setInputValue={setInputValue}
-                            handleSend={handleInputSubmit}/>
+                            handleSend={handleInputSubmit}
+                        />
                     </ChatInputContainer>
                     <Disclaimer>ChatEAT는 실수를 할 수 있습니다. 중요한 정보를 확인하세요.</Disclaimer>
                 </ChatInputSection>
@@ -176,8 +192,8 @@ Dashboard.propTypes = {
 
 export default Dashboard;
 
-const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
-    const handleChange=(e)=>{
+const ChatInputWithButton = ({inputValue, setInputValue, handleSend}) => {
+    const handleChange = (e) => {
         setInputValue(e.target.value);
     };
 
@@ -197,9 +213,8 @@ const ChatInputWithButton=({inputValue, setInputValue, handleSend}) => {
                 placeholder="채팅을 입력하세요..."
                 rows={1}
             />
-
-            <SendButton $visible={inputValue.length > 0 ? 'block' : undefined} onClick={handleSend}>
-                <ArrowIcon src="/src/assets/arrow.png" alt="send" />
+            <SendButton $visible={inputValue.length > 0} onClick={handleSend}>
+                <ArrowIcon src="/src/assets/arrow.png" alt="send"/>
             </SendButton>
         </ChatInputContainer>
     );
@@ -294,13 +309,13 @@ const ButtonImg = styled.img`
     width: 35px;
     height: auto;
     margin-right: 10px;
-`
+`;
 
 const CenterAlignedContainer = styled.div`
     display: flex;
     justify-content: center;
     width: 100%;
-    margin-top: 10px; /* 상단 여백 추가 */
+    margin-top: 10px;
 `;
 
 const ViewChatting = styled.p`
@@ -314,7 +329,7 @@ const ViewChatting = styled.p`
     &:hover {
         color: #4e4e4e;
     }
-`
+`;
 
 const ChatBox = styled.div`
     display: flex;
@@ -330,7 +345,7 @@ const Chatting = styled.div`
     display: flex;
     flex-direction: column;
     width: 100%;
-`
+`;
 
 const ChatInputSection = styled.div`
     background-color: #ffffff;
@@ -373,11 +388,11 @@ const SendButton = styled.button`
     padding: 7px;
     border-radius: 16px;
     cursor: pointer;
-    display: ${({ $visible }) => ($visible ? 'block' : 'none')};
+    display: ${({$visible}) => ($visible ? 'block' : 'none')};
 `;
 
 const ArrowIcon = styled.img`
-    width: 20px;  // 아이콘 크기 조절
+    width: 20px;
     height: 20px;
 `;
 
