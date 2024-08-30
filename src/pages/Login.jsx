@@ -9,7 +9,7 @@ const Login = () => {
     const {handleLogin, loading, error} = useAuth();
     const navigate = useNavigate();
     const [localError, setLocalError] = useState('');
-    const KAKAO_LOGIN_URL = import.meta.env.VITE_BACK_END_URL + "/oauth2/authorization/kakao";
+    const KAKAO_LOGIN_URL = "https://api-chateat.store/oauth2/authorization/kakao";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
