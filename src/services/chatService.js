@@ -7,7 +7,7 @@ export const fetchChatMessages = async () => {
         const timestamp = new Date(msg.timestamp);
         return {
             id: msg.id,
-            text: msg.message,
+            text: formatMessageWithLineBreaks(msg.message),
             sender: msg.botResponse ? 'bot' : 'user',
             timestamp,
             userEmail: msg.email,
@@ -39,4 +39,9 @@ export const removeLikeFromBackend = async (messageId) => {
         console.error('Error removing like:', error);
         throw error;
     }
+};
+
+export const formatMessageWithLineBreaks = (message) => {
+    if (!message) return '';
+    return message.replace(/\n/g, '<br>');
 };

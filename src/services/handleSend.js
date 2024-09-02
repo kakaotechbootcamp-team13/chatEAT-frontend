@@ -1,4 +1,5 @@
 import apiClient from "./apiClient.js";
+import {formatMessageWithLineBreaks} from "./chatService.js";
 
 export const handleSend = async (message, setChatMessages) => {
     if (message.trim()) {
@@ -13,7 +14,7 @@ export const handleSend = async (message, setChatMessages) => {
         try {
             const response = await apiClient.post('/chat', {message});
             const botMessage = {
-                text: response.data.message,
+                text: formatMessageWithLineBreaks(response.data.message),
                 sender: 'bot',
                 timestamp: new Date(),
             };

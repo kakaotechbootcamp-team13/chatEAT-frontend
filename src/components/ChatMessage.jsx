@@ -31,7 +31,7 @@ const ChatMessage = ({message, isLiked: initialIsLiked, onRemoveLike}) => {
     return (
         <ChatSet>
             <StyledChatMessage $sender={message.sender}>
-                {message.text}
+                <span dangerouslySetInnerHTML={{__html: message.text}}/>
             </StyledChatMessage>
             {message.sender === 'bot' && (
                 <HeartIcon
