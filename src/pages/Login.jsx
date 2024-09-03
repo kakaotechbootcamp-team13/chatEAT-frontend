@@ -28,6 +28,7 @@ const Login = () => {
         const success = await handleLogin(email, password);
         if (success) {
             navigate('/dashboard');
+            window.location.reload();
         } else {
             if (error === 'Blocked Account') {
                 setLocalError('비활성화된 계정입니다. 관리자에 문의해주세요.');
