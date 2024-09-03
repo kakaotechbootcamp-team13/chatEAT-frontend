@@ -43,5 +43,9 @@ export const removeLikeFromBackend = async (messageId) => {
 
 export const formatMessageWithLineBreaks = (message) => {
     if (!message) return '';
-    return message.replace(/\n/g, '<br>');
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const formattedMessage = message.replace(urlRegex, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #98bfff; text-decoration: underline;">${url}</a>`;
+    });
+    return formattedMessage.replace(/\n/g, '<br>');
 };
