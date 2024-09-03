@@ -6,6 +6,7 @@ import useChatScroll from "../hooks/useChatScroll.js";
 import apiClient from "../services/apiClient.js";
 import ChatMessage from "../components/ChatMessage.jsx";
 import {format} from "date-fns";
+import {formatMessageWithLineBreaks} from "../services/chatService.js";
 
 const Like = ({sidebarOpen, toggleSidebar}) => {
     const [likedMessages, setLikedMessages] = useState([]);
@@ -24,7 +25,7 @@ const Like = ({sidebarOpen, toggleSidebar}) => {
                     }
                     return {
                         id: msg.messageId,
-                        text: msg.messageText,
+                        text: formatMessageWithLineBreaks(msg.messageText),
                         timestamp: timestamp,
                         sender: 'bot'
                     };
