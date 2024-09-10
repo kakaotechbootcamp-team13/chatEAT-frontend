@@ -17,6 +17,7 @@ const Dashboard = ({sidebarOpen, toggleSidebar}) => {
     const [buttonVisible, setButtonVisible] = useState(true);
     const chatBoxRef = useChatScroll(chatMessages);
     const shouldScrollRef = useRef(false);
+    const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
 
     useEffect(() => {
         const fetchChatData = async () => {
@@ -46,12 +47,15 @@ const Dashboard = ({sidebarOpen, toggleSidebar}) => {
 
     const handleInputSubmit = async () => {
         if (!inputValue.trim()) return;
+        setIsWaitingForResponse(true);
         try {
             await handleSend(inputValue, setChatMessages);
             setInputValue('');
             setButtonVisible(false);
         } catch (error) {
             console.error('Error sending message:', error);
+        } finally {
+            setIsWaitingForResponse(false);
         }
     };
 
@@ -176,7 +180,11 @@ const Dashboard = ({sidebarOpen, toggleSidebar}) => {
                             inputValue={inputValue}
                             setInputValue={setInputValue}
                             handleSend={handleInputSubmit}
+                            isDisabled={isWaitingForResponse}
                         />
+                        {isWaitingForResponse && (
+                            <WaitingMessage>응답을 기다리고 있습니다...</WaitingMessage>
+                        )}
                     </ChatInputContainer>
                     <Disclaimer>ChatEAT는 실수를 할 수 있습니다. 중요한 정보를 확인하세요.</Disclaimer>
                 </ChatInputSection>
@@ -192,7 +200,7 @@ Dashboard.propTypes = {
 
 export default Dashboard;
 
-const ChatInputWithButton = ({inputValue, setInputValue, handleSend}) => {
+const ChatInputWithButton = ({inputValue, setInputValue, handleSend, isDisabled}) => {
     const handleChange = (e) => {
         setInputValue(e.target.value);
     };
@@ -212,6 +220,7 @@ const ChatInputWithButton = ({inputValue, setInputValue, handleSend}) => {
                 onKeyPress={handleKeyPress}
                 placeholder="채팅을 입력하세요..."
                 rows={1}
+                disabled={isDisabled}
             />
             <SendButton $visible={inputValue.length > 0} onClick={handleSend}>
                 <ArrowIcon src="/src/assets/arrow.png" alt="send"/>
@@ -415,4 +424,11 @@ const DateLabel = styled.div`
     margin: 16px 0;
     border-radius: 12px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const WaitingMessage = styled.p`
+    color: #8b4513;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
 `;
