@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {logout, refreshAccessToken} from './authService.js';
 
-const API_URL = "http://localhost:8080";
+const API_URL = "https://api-chateat.store";
 
 const apiClient = axios.create({
     baseURL: API_URL,
