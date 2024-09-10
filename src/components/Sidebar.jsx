@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
@@ -9,6 +9,14 @@ const Sidebar = ({open}) => {
     const {user, loading} = useUser();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const navigate = useNavigate();
+    const [selectedAvatar, setSelectedAvatar] = useState('/src/assets/images/avatars/avatar1.png');
+
+    useEffect(() => {
+        const savedAvatar = localStorage.getItem('selectedAvatar');
+        if (savedAvatar) {
+            setSelectedAvatar(savedAvatar);
+        }
+    }, []);
 
     if (loading) return null;
 
@@ -53,7 +61,7 @@ const Sidebar = ({open}) => {
     return (
         <SidebarContainer open={open}>
             <UserProfile>
-                <Avatar/>
+                <Avatar src={selectedAvatar} alt="User Avatar" />
                 <UserName>{user.nickname}</UserName>
             </UserProfile>
             <SidebarMenu>
@@ -115,7 +123,7 @@ const UserProfile = styled.div`
     align-items: center;
 `;
 
-const Avatar = styled.div`
+const Avatar = styled.img`
     width: 80px;
     height: 80px;
     background-color: #ccc;

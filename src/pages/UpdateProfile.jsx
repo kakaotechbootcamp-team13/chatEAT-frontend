@@ -6,6 +6,15 @@ import Sidebar from '../components/Sidebar';
 import PropTypes from 'prop-types';
 import {useUser} from '../contexts/UserContext';
 
+const avatars = [
+    "/src/assets/avatar1.png",
+    "/src/assets/avatar2.png",
+    "/src/assets/avatar3.png",
+    "/src/assets/avatar4.png",
+    "/src/assets/avatar5.png",
+    "/src/assets/avatar6.png"
+];
+
 const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
     const {user, loading} = useUser();
     const [newNickname, setNewNickname] = useState('');
@@ -21,8 +30,15 @@ const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
+    const [selectedAvatar, setSelectedAvatar] = useState(localStorage.getItem('selectedAvatar') || avatars[0]);
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
 
     if (loading) return null;
+
+    const handleAvatarChange = (avatar) => {
+        setSelectedAvatar(avatar);
+        localStorage.setItem('selectedAvatar', avatar);
+    };
 
     const handleNicknameChange = async (e) => {
         const nickname = e.target.value;
@@ -127,11 +143,42 @@ const UpdateProfile = ({sidebarOpen, toggleSidebar}) => {
                     <Title>회원 정보 수정</Title>
                 </Header>
                 <FormWrapper>
+                    <AvatarWrapper>
+                        <UpdateButton onClick={() => setShowAvatarModal(true)}>아바타 변경하기</UpdateButton>
+                    </AvatarWrapper>
                     <UpdateButton onClick={() => setShowNicknameModal(true)}>닉네임 변경하기</UpdateButton>
                     {!user.socialType && (
                         <UpdateButton onClick={handlePasswordUpdateClick}>비밀번호 변경하기</UpdateButton>
                     )}
                 </FormWrapper>
+                {showAvatarModal && (
+                    <AvatarModal>
+                        <AvatarContent>
+                            <AvatarTitle>아바타 선택</AvatarTitle>
+                            <AvatarOptions>
+                                {avatars.map((avatar, index) => (
+                                    <AvatarOption
+                                        key={index}
+                                        onClick={() => handleAvatarChange(avatar)}
+                                        isSelected={selectedAvatar === avatar}
+                                    >
+                                        <AvatarImage src={avatar} alt={`Avatar ${index + 1}`} />
+                                    </AvatarOption>
+                                ))}
+                            </AvatarOptions>
+                            <DialogActions>
+                                <DialogButton
+                                    onClick={() => {
+                                        setShowAvatarModal(false);
+                                        window.location.reload();
+                                    }}
+                                >
+                                    확인
+                                </DialogButton>
+                            </DialogActions>
+                        </AvatarContent>
+                    </AvatarModal>
+                )}
 
                 {showNicknameModal && (
                     <ConfirmDialog>
@@ -308,6 +355,12 @@ const UpdateButton = styled.button`
     }
 `;
 
+const AvatarWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`;
+
 const ConfirmDialog = styled.div`
     position: fixed;
     top: 0;
@@ -351,6 +404,7 @@ const DialogButton = styled.button`
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin-top: 5px;
 
     &:hover {
         background-color: #6F3710FF;
@@ -362,4 +416,59 @@ const ErrorText = styled.p`
     font-size: 12px;
     margin-top: -10px;
     margin-bottom: 10px;
+`;
+
+const AvatarModal = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+`;
+
+const AvatarContent = styled.div`
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    text-align: center;
+`;
+
+const AvatarTitle = styled.h2`
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+`;
+
+const AvatarOptions = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 300px;
+    margin: 0 auto;
+`;
+
+const AvatarOption = styled.div`
+    width: 30%;
+    padding: 5px;
+    border-radius: 60%;
+    border: ${(props) => (props.isSelected ? '2px solid #A0522DFF' : '2px solid transparent')};
+    transition: border-color 0.3s ease;
+
+    &:hover {
+        border-color: #A0522DFF;
+    }
+`;
+
+const AvatarImage = styled.img`
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
 `;
