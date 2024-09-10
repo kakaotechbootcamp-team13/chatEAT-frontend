@@ -9,7 +9,7 @@ const Sidebar = ({open}) => {
     const {user, loading} = useUser();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const navigate = useNavigate();
-    const [selectedAvatar, setSelectedAvatar] = useState('/src/assets/images/avatars/avatar1.png');
+    const [selectedAvatar, setSelectedAvatar] = useState('/src/assets/avatar1.png');
 
     useEffect(() => {
         const savedAvatar = localStorage.getItem('selectedAvatar');
